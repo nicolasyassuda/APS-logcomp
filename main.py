@@ -354,6 +354,14 @@ class ReadingNode(Node):
         # Implementar a lógica de leitura do sensor
         print(f"Lendo o sensor {self.sensor.evaluate(symbol_table)}")
         
+        # Não pensei em qual e como seria a leitura do sensor, então fiz um exemplo de como seria a leitura de varios sensores via id;
+        exemploSensor = {
+            1: 10,
+            2: 20,
+            3: 30
+        }
+        
+        return exemploSensor[self.sensor.evaluate(symbol_table)]
 
 class ExpressionNode(Node):
     def __init__(self, value):
@@ -586,6 +594,8 @@ class Parser:
             bool_value = self.current_token.valor == "true"
             self.advance()
             return ExpressionNode(bool_value)
+        elif self.current_token.tipo == "READING":
+            return self.leitura()
         else:
             raise SyntaxError(f"Invalid factor: {self.current_token.tipo}")
 
@@ -602,10 +612,11 @@ source_code = """
 _startclean
 bool parar 
 parar = false
-
+int x 
 _while (!parar) {
     _move frente 1
-    _readSensor 1
+    x = _readSensor 2
+    _move tras x
     _if 1 == 1 {
         parar = true
     }
