@@ -373,6 +373,7 @@ class ReadingNode(Node):
         
         # Não pensei em qual e como seria a leitura do sensor, então fiz um exemplo de como seria a leitura de varios sensores via id;
         exemploSensor = {
+            0: 0,
             1: 10,
             2: 20,
             3: 30
@@ -657,12 +658,18 @@ class Parser:
 
 # Código de teste
 source_code = """
-int contador
-contador = 0
-_while (contador < 3 or true) {
-    _move frente 1
-    contador = contador + 1
-}
+int a
+int b
+bool resultado
+
+a = 10
+b = 5
+resultado = a > b
+_readSensor resultado
+resultado = a < b
+_readSensor resultado
+resultado = a == b
+_readSensor resultado
 """
 tokenizer = Tokenizer(source_code)
 parser = Parser(tokenizer)
