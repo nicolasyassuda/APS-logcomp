@@ -145,7 +145,7 @@ Lendo o sensor 14
 Lendo o sensor 20
 
 
-Teste 11:
+Teste 11 Incremento e Decremento:
 source_code = """
 int contador
 contador = 5
@@ -157,5 +157,102 @@ _readSensor contador
 Saída 11:
 Lendo o sensor 4
 
+
+Teste 12 Operações de Comparação:
+source_code = """
+int a
+int b
+bool resultado
+
+a = 10
+b = 5
+resultado = a > b
+_readSensor resultado
+resultado = a < b
+_readSensor resultado
+resultado = a == b
+_readSensor resultado
+resultado = a > true
+_readSensor resultado
+"""
+Saída 12:
+Lendo o sensor 1
+Lendo o sensor 0
+Lendo o sensor 0
+Lendo o sensor 1
+
+
+Teste 13 Comando de Limpeza com Condição:
+source_code = """
+bool iniciar
+iniciar = true
+
+_if iniciar {
+    _startclean
+    _move frente 3
+    _stopclean
+}
+"""
+Saída 13:
+Iniciando a limpeza
+Movendo frente por 3 unidades
+Parando a limpeza
+
+
+Teste 14 Leitura e Uso de Sensores em Condições:
+source_code = """
+int distancia
+int sujeira
+bool limpar
+
+distancia = 5
+sujeira = 3
+limpar = false
+
+_if distancia < 10 {
+    _move frente distancia
+}
+
+_if sujeira > 2 {
+    _cleanthrash
+    limpar = true
+}
+
+_if limpar {
+    _startclean
+}
+"""
+Saída 14:
+Movendo frente por 5 unidades
+Limpando o lixo
+Iniciando a limpeza
+
+
+Teste 15 Controle de Fluxo com Múltiplos Blocos:
+source_code = """
+int i
+int j
+bool continuar
+
+i = 0
+j = 0
+continuar = true
+
+_while (i < 2) {
+    _repeat 2 {
+        _move frente 1
+        j = j + 1
+    }
+    i = i + 1
+    _if j == 4 {
+        continuar = false
+    }
+}
+"""
+Saída 15:
+Movendo frente por 1 unidades
+Movendo frente por 1 unidades
+Movendo frente por 1 unidades
+Movendo frente por 1 unidades
 
 
