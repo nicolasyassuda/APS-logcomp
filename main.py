@@ -62,7 +62,7 @@ A EBNF da linguagem é a seguinte:
 <programa> ::= {<comando>}
 <comando> ::= <comando_movimento> | <comando_controle> | <comando_sistema> | <comando_limpeza> | <declaracao> | <atribuicao> | <leitura> | <operacao_matematica> | <operacao_logica> | <operacao_comparacao>
 
-<comando_movimento> ::= "_move" <direcao> <expressao> | "_rotate" <direcao> <expressao>
+<comando_movimento> ::= "_move" <direcao> <expressao> | "_rotate" <rotacao> <expressao>
 
 <comando_controle> ::= "_repeat" <expressao> <bloco> | "_while" <condicao> <bloco> | "_if" <condicao> <bloco>
 
@@ -81,8 +81,8 @@ A EBNF da linguagem é a seguinte:
 <operacao_logica> ::= <variavel> "and" <variavel> | <variavel> "or" <variavel> | "!" <variavel>
 <operacao_comparacao> ::= <expressao> ">" <expressao> | <expressao> "<" <expressao> | <expressao> "==" <expressao>
 
-<direcao> ::= "frente" | "tras" | "esquerda" | "direita"
-
+<direcao> ::= "frente" | "tras" 
+<rotacao> ::= "esquerda" | "direita"
 <condicao> ::= <variavel> | <operacao_comparacao> | <inversao>
 
 <variavel> ::= <letra> {<letra> | <numero>}
@@ -265,9 +265,10 @@ class SymbolTable:
         if identifier in self.variables:
             raise ValueError(f"Variável '{identifier}' já declarada")
         self.variables[identifier] = value_and_type
-
+        return value_and_type
+    
 class Node:
-    def evaluate(self, symbol_table: SymbolTable):
+    def evaluate(self, symbol_table: SymbolTable, stack_of_commands: StackOfCommands):
         pass
 
 class MoveNode(Node):
@@ -275,8 +276,9 @@ class MoveNode(Node):
         self.direction = direction
         self.distance = distance
 
-    def evaluate(self, symbol_table):
-        distance_value = self.distance.evaluate(symbol_table)
+    def evaluate(self, symbol_table, stack_of_commands):
+        distance_value = self.distance.evaluate(symbol_table, stack_of_commands)
+        stack_of_commands.push((self.direction, distance_value))
         print(f"Movendo {self.direction} por {distance_value} unidades")
 
 class RotateNode(Node):
@@ -284,8 +286,9 @@ class RotateNode(Node):
         self.direction = direction
         self.angle = angle
 
-    def evaluate(self, symbol_table):
-        angle_value = self.angle.evaluate(symbol_table)
+    def evaluate(self, symbol_table,stack_of_commands):
+        angle_value = self.angle.evaluate(symbol_table,stack_of_commands)
+        stack_of_commands.push((self.direction, angle_value))
         print(f"Rotacionando {self.direction} por {angle_value} graus")
 
 class RepeatNode(Node):
@@ -294,10 +297,10 @@ class RepeatNode(Node):
         self.block = block
 
     def evaluate(self, symbol_table):
-        times_value = self.times.evaluate(symbol_table)
+        times_value = self.times.evaluate(symbol_table,stack_of_commands)
         for _ in range(times_value):
             for command in self.block:
-                command.evaluate(symbol_table)
+                command.evaluate(symbol_table,stack_of_commands)
 
 class WhileNode(Node):
     def __init__(self, condition, block):
@@ -305,9 +308,9 @@ class WhileNode(Node):
         self.block = block
 
     def evaluate(self, symbol_table):
-        while self.condition.evaluate(symbol_table):
+        while self.condition.evaluate(symbol_table,stack_of_commands):
             for command in self.block:
-                command.evaluate(symbol_table)
+                command.evaluate(symbol_table,stack_of_commands)
 
 class IfNode(Node):
     def __init__(self, condition, block):
@@ -315,12 +318,23 @@ class IfNode(Node):
         self.block = block
 
     def evaluate(self, symbol_table):
-        if self.condition.evaluate(symbol_table):
+        if self.condition.evaluate(symbol_table,stack_of_commands):
             for command in self.block:
-                command.evaluate(symbol_table)
+                command.evaluate(symbol_table,stack_of_commands)
 
 class ReturnDockNode(Node):
-    def evaluate(self, symbol_table):
+    
+    def evaluate(self, symbol_table, stack_of_commands):
+        while stack_of_commands.__len__() > 0:
+            comando = stack_of_commands.pop()
+            if comando[0] == "frente":
+                print(f"Voltando {comando[1]} unidades")
+            elif comando[0] == "tras":
+                print(f"Avançando {comando[1]} unidades")
+            elif comando[0] == "esquerda":
+                print(f"Rotacionando {comando[1]} graus à esquerda")
+            else:
+                print(f"Rotacionando {comando[1]} graus à direita")
         print("Retornando à base de carregamento")
 
 class CleanTrashNode(Node):
@@ -340,7 +354,7 @@ class DeclarationNode(Node):
         self.var_type = var_type
         self.identifier = identifier
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table,stack_of_commands):
         default_value = 0 if self.var_type == "INT_TYPE" else False
         symbol_table.declare(self.identifier, (default_value, self.var_type))
 
@@ -349,7 +363,7 @@ class AssignmentNode(Node):
         self.identifier = identifier
         self.value = value
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         if self.value in ["++", "INC"]:
             current_value, var_type = symbol_table.getter(self.identifier)
             symbol_table.setter(self.identifier, (current_value + 1, var_type))
@@ -357,7 +371,7 @@ class AssignmentNode(Node):
             current_value, var_type = symbol_table.getter(self.identifier)
             symbol_table.setter(self.identifier, (current_value - 1, var_type))
         elif isinstance(self.value, Node):
-            value = self.value.evaluate(symbol_table)
+            value = self.value.evaluate(symbol_table, stack_of_commands)
             var_type = symbol_table.variables[self.identifier][1]
             symbol_table.setter(self.identifier, (value, var_type))
         else:
@@ -367,9 +381,9 @@ class ReadingNode(Node):
     def __init__(self, sensor):
         self.sensor = sensor
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table,stack_of_commands):
         # Implementar a lógica de leitura do sensor
-        print(f"Lendo o sensor {self.sensor.evaluate(symbol_table)}")
+        print(f"Lendo o sensor {self.sensor.evaluate(symbol_table,stack_of_commands)}")
         
         # Não pensei em qual e como seria a leitura do sensor, então fiz um exemplo de como seria a leitura de varios sensores via id;
         exemploSensor = {
@@ -379,15 +393,15 @@ class ReadingNode(Node):
             3: 30
         }
         
-        return exemploSensor[self.sensor.evaluate(symbol_table)]
+        return exemploSensor[self.sensor.evaluate(symbol_table,stack_of_commands)]
 
 class ExpressionNode(Node):
     def __init__(self, value):
         self.value = value
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         if isinstance(self.value, Node):
-            return self.value.evaluate(symbol_table)
+            return self.value.evaluate(symbol_table,stack_of_commands)
         else:
             return self.value
 
@@ -405,9 +419,9 @@ class BinOpNode(Node):
         self.left = left
         self.right = right
 
-    def evaluate(self, symbol_table):
-        left_val = self.left.evaluate(symbol_table)
-        right_val = self.right.evaluate(symbol_table)
+    def evaluate(self, symbol_table, stack_of_commands):
+        left_val = self.left.evaluate(symbol_table,stack_of_commands)
+        right_val = self.right.evaluate(symbol_table,stack_of_commands)
         if self.op_type == 'SUM':
             return left_val + right_val
         elif self.op_type == 'SUB':
@@ -435,7 +449,7 @@ class UnOpNode(Node):
         self.operand = operand
 
     def evaluate(self, symbol_table):
-        operand_val = self.operand.evaluate(symbol_table)
+        operand_val = self.operand.evaluate(symbol_table,stack_of_commands)
         if self.op_type == 'NOT':
             return int(not operand_val)
         else:
@@ -658,22 +672,18 @@ class Parser:
 
 # Código de teste
 source_code = """
-int a
-int b
-bool resultado
 
-a = 10
-b = 5
-resultado = a > b
-_readSensor resultado
-resultado = a < b
-_readSensor resultado
-resultado = a == b
-_readSensor resultado
+_move frente 20
+_rotate esquerda 90
+_move frente 10
+
+_returndock
 """
+
 tokenizer = Tokenizer(source_code)
 parser = Parser(tokenizer)
 ast = parser.parse()
 symbol_table = SymbolTable()
+stack_of_commands = StackOfCommands()
 for command in ast:
-    command.evaluate(symbol_table)
+    command.evaluate(symbol_table,stack_of_commands)
