@@ -229,6 +229,23 @@ class Tokenizer:
         else:
             raise ValueError(f"Token inválido: {char}")
 
+class StackOfCommands:
+    def __init__(self):
+        self.stack = []
+    
+    def push(self, command):
+        self.stack.append(command)
+    
+    def pop(self):
+        return self.stack.pop()
+    
+    def top(self):
+        return self.stack[-1]
+
+    def __len__(self):
+        return len(self.stack)
+    
+
 class SymbolTable:
     def __init__(self):
         self.variables = {}
@@ -558,8 +575,35 @@ class Parser:
             return left  # Retorna a expressão diretamente se não houver operador de comparação
 
     def expr(self):
+        left = self.and_expr()
+        while self.current_token.tipo == "OR":
+            op = self.current_token.tipo
+            self.advance()
+            right = self.and_expr()
+            left = BinOpNode(op, left, right)
+        return left
+
+    def and_expr(self):
+        left = self.comparison_expr()
+        while self.current_token.tipo == "AND":
+            op = self.current_token.tipo
+            self.advance()
+            right = self.comparison_expr()
+            left = BinOpNode(op, left, right)
+        return left
+
+    def comparison_expr(self):
+        left = self.arithmetic_expr()
+        while self.current_token.tipo in ["MAIOR", "MENOR", "IGUAL"]:
+            op = self.current_token.tipo
+            self.advance()
+            right = self.arithmetic_expr()
+            left = BinOpNode(op, left, right)
+        return left
+
+    def arithmetic_expr(self):
         left = self.term()
-        while self.current_token.tipo in ["SUM", "SUB","OR"]:
+        while self.current_token.tipo in ["SUM", "SUB"]:
             op = self.current_token.tipo
             self.advance()
             right = self.term()
@@ -568,7 +612,7 @@ class Parser:
 
     def term(self):
         left = self.factor()
-        while self.current_token.tipo in ["MULT", "DIV", "AND"]:
+        while self.current_token.tipo in ["MULT", "DIV"]:
             op = self.current_token.tipo
             self.advance()
             right = self.factor()
@@ -586,15 +630,15 @@ class Parser:
             return IdentifierNode(ident)
         elif self.current_token.tipo == "LPAREN":
             self.advance()
-            expr = self.condicao()
+            expr = self.expr()
             self.match("RPAREN")
             return expr
-        elif self.current_token.tipo in "NOT":
+        elif self.current_token.tipo == "NOT":
             op = self.current_token.tipo
             self.advance()
             factor = self.factor()
             return UnOpNode(op, factor)
-        elif self.current_token.tipo in "BOOL":
+        elif self.current_token.tipo == "BOOL":
             bool_value = self.current_token.valor == "true"
             self.advance()
             return ExpressionNode(bool_value)
@@ -615,12 +659,11 @@ class Parser:
 source_code = """
 int contador
 contador = 0
-_while (contador < 3 and true) {
+_while (contador < 3 or true) {
     _move frente 1
     contador = contador + 1
 }
 """
-
 tokenizer = Tokenizer(source_code)
 parser = Parser(tokenizer)
 ast = parser.parse()
