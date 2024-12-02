@@ -582,7 +582,7 @@ class Parser:
             return IdentifierNode(ident)
         elif self.current_token.tipo == "LPAREN":
             self.advance()
-            expr = self.expr()
+            expr = self.condicao()
             self.match("RPAREN")
             return expr
         elif self.current_token.tipo in "NOT":
@@ -609,17 +609,11 @@ class Parser:
 
 # Código de teste
 source_code = """
-_startclean
-bool parar 
-parar = false
-int x 
-_while (!parar) {
+int contador
+contador = 0
+_while (contador < 3) {
     _move frente 1
-    x = _readSensor 2
-    _move tras x
-    _if 1 == 1 {
-        parar = true
-    }
+    contador = contador + 1
 }
 """
 
