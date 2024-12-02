@@ -404,6 +404,10 @@ class BinOpNode(Node):
             return int(left_val < right_val)
         elif self.op_type == 'IGUAL':
             return int(left_val == right_val)
+        elif self.op_type == 'AND':
+            return int(left_val and right_val)
+        elif self.op_type == 'OR':
+            return int(left_val or right_val)
         else:
             raise ValueError(f"Operador desconhecido '{self.op_type}'")
 
@@ -555,7 +559,7 @@ class Parser:
 
     def expr(self):
         left = self.term()
-        while self.current_token.tipo in ["SUM", "SUB"]:
+        while self.current_token.tipo in ["SUM", "SUB","OR"]:
             op = self.current_token.tipo
             self.advance()
             right = self.term()
@@ -564,7 +568,7 @@ class Parser:
 
     def term(self):
         left = self.factor()
-        while self.current_token.tipo in ["MULT", "DIV"]:
+        while self.current_token.tipo in ["MULT", "DIV", "AND"]:
             op = self.current_token.tipo
             self.advance()
             right = self.factor()
@@ -611,7 +615,7 @@ class Parser:
 source_code = """
 int contador
 contador = 0
-_while (contador < 3) {
+_while (contador < 3 and true) {
     _move frente 1
     contador = contador + 1
 }
