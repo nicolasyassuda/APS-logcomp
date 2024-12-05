@@ -1,9 +1,5 @@
 # Nomes: Nicolas Enzo Yassuda, Kevin Nagayuki Shinohara
 ```markdown
-
-Aqui está o conteúdo formatado como um arquivo `README.md`:
-
-```markdown
 # Linguagem de Programação para Controle de Robô de Limpeza
 
 Este documento descreve a especificação de uma linguagem de programação própria, projetada para controlar um robô de limpeza. A linguagem inclui comandos específicos para movimentação, controle, limpeza e leitura de sensores, além de suporte para operações matemáticas, lógicas e comparações.
