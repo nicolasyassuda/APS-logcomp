@@ -1,5 +1,195 @@
 # Nomes: Nicolas Enzo Yassuda, Kevin Nagayuki Shinohara
 ```markdown
+
+Aqui está o conteúdo formatado como um arquivo `README.md`:
+
+```markdown
+# Linguagem de Programação para Controle de Robô de Limpeza
+
+Este documento descreve a especificação de uma linguagem de programação própria, projetada para controlar um robô de limpeza. A linguagem inclui comandos específicos para movimentação, controle, limpeza e leitura de sensores, além de suporte para operações matemáticas, lógicas e comparações.
+
+---
+
+## **Tipos de Comandos**
+
+### **Comandos de Movimento**
+- `_move <direção> <distância>`
+- `_rotate <direção> <ângulo>`
+
+### **Comandos de Controle**
+- `_repeat <n> <comando>`
+- `_while <condição> <comando>`
+- `_if <condição> <comando>`
+
+### **Comandos de Sistema**
+- `_returndock`
+- `_cleanthrash`
+- `_readSensor <sensor>`
+
+### **Comandos de Limpeza**
+- `_stopclean`
+- `_startclean`
+
+---
+
+## **Características da Linguagem**
+
+### **Tipos de Variáveis**
+1. **Inteiro** (`int`) - Para evitar imprecisões em leituras de sensores.
+2. **Lógico** (`bool`) - Para controle de fluxo.
+
+### **Operações Matemáticas**
+1. Soma (`+`)
+2. Subtração (`-`)
+3. Multiplicação (`*`)
+4. Divisão (`/`)
+
+### **Operações Lógicas**
+1. E (`and`)
+2. Ou (`or`)
+3. Negação (`!`)
+
+### **Operações de Comparação**
+1. Maior (`>`)
+2. Menor (`<`)
+3. Igual (`==`)
+
+### **Operações de Atribuição**
+1. Atribuição (`=`)
+2. Incremento (`++`)
+3. Decremento (`--`)
+
+### **Operações de Leitura**
+1. Sensor de distância (`readdistance`)
+2. Sensor de sujeira (`readsujo`)
+3. Sensor de bateria (`readbateria`)
+
+---
+
+## **EBNF da Linguagem**
+
+A gramática da linguagem, definida usando a notação BNF estendida (EBNF), está detalhada abaixo:
+
+```ebnf
+<programa> ::= {<comando>}
+<comando> ::= <comando_movimento> 
+            | <comando_controle> 
+            | <comando_sistema> 
+            | <comando_limpeza> 
+            | <declaracao> 
+            | <atribuicao> 
+            | <leitura> 
+            | <operacao_matematica> 
+            | <operacao_logica> 
+            | <operacao_comparacao>
+
+<comando_movimento> ::= "_move" <direcao> <expressao> 
+                      | "_rotate" <rotacao> <expressao>
+
+<comando_controle> ::= "_repeat" <expressao> <bloco> 
+                     | "_while" <condicao> <bloco> 
+                     | "_if" <condicao> <bloco>
+
+<bloco> ::= "{" {<comando>} "}"
+
+<comando_sistema> ::= "_returndock" | "_cleanthrash"
+<comando_limpeza> ::= "_stopclean" | "_startclean"
+<declaracao> ::= "int" <variavel> | "bool" <variavel>
+<atribuicao> ::= <variavel> "=" <expressao> 
+               | <variavel> "++" 
+               | <variavel> "--"
+<leitura> ::= "readdistance" | "readsujo" | "readbateria"
+
+<expressao> ::= <termo> { ("+" | "-") <termo> }
+<termo> ::= <fator> { ("*" | "/") <fator> }
+<fator> ::= <numero> | <variavel> | "(" <expressao> ")"
+
+<operacao_logica> ::= <variavel> "and" <variavel> 
+                    | <variavel> "or" <variavel> 
+                    | "!" <variavel>
+<operacao_comparacao> ::= <expressao> ">" <expressao> 
+                        | <expressao> "<" <expressao> 
+                        | <expressao> "==" <expressao>
+
+<direcao> ::= "frente" | "tras" 
+<rotacao> ::= "esquerda" | "direita"
+<condicao> ::= <variavel> | <operacao_comparacao> | <inversao>
+
+<variavel> ::= <letra> {<letra> | <numero>}
+<numero> ::= <digito> {<digito>}
+<digito> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<letra> ::= [a-zA-Z]
+<inversao> ::= "!" <variavel> | "!" <condicao>
+```
+
+---
+
+## **Descrição dos Elementos**
+
+### **Movimentos**
+- **`_move <direção> <distância>`**  
+  Move o robô na direção especificada por uma certa distância.
+
+- **`_rotate <direção> <ângulo>`**  
+  Rotaciona o robô para a esquerda ou direita pelo ângulo especificado.
+
+### **Controle**
+- **`_repeat <n> { <comandos> }`**  
+  Repete o bloco de comandos `n` vezes.
+
+- **`_while <condição> { <comandos> }`**  
+  Executa o bloco de comandos enquanto a condição for verdadeira.
+
+- **`_if <condição> { <comandos> }`**  
+  Executa o bloco de comandos se a condição for verdadeira.
+
+### **Sistema**
+- **`_returndock`**  
+  Retorna o robô para a base.
+
+- **`_cleanthrash`**  
+  Limpa lixo detectado.
+
+### **Limpeza**
+- **`_startclean`**  
+  Inicia o modo de limpeza.
+
+- **`_stopclean`**  
+  Interrompe o modo de limpeza.
+
+---
+
+## **Exemplo de Programa**
+
+```plaintext
+int distancia
+bool limpar
+
+distancia = 5
+limpar = false
+
+_if distancia < 10 {
+    _move frente distancia
+    _cleanthrash
+    limpar = true
+}
+
+_if limpar {
+    _startclean
+}
+```
+
+**Descrição do Programa:**
+1. Declara uma variável `distancia` e a inicializa com o valor `5`.
+2. Declara uma variável booleana `limpar` e a inicializa como `false`.
+3. Verifica se a `distancia` é menor que `10`. Caso seja, move o robô, limpa o lixo e marca a variável `limpar` como `true`.
+4. Se `limpar` for `true`, inicia o modo de limpeza.
+``` 
+
+Esse formato utiliza markdown para facilitar a organização e leitura, com divisões claras entre os tópicos e a inclusão de exemplos detalhados.
+
+
+
 # Testes da Linguagem de Programação
 
 Este README contém uma série de testes realizados para validar a sintaxe e o comportamento de comandos de uma linguagem de programação projetada para controlar um robô, incluindo operações como movimentação, rotação, leituras de sensores, condicionais e loops.
