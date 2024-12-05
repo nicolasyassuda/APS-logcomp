@@ -1,7 +1,7 @@
 '''
 Este codigo é destinado a um compilador de uma liguagem de programação propria para controle de um robô de limpeza.
 
-A linguagem é composta por 3 tipos de comandos:
+A linguagem é composta por 4 tipos de comandos:
     - Comandos de movimento
     - Comandos de controle
     - Comandos de sistema
@@ -296,7 +296,7 @@ class RepeatNode(Node):
         self.times = times
         self.block = block
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         times_value = self.times.evaluate(symbol_table,stack_of_commands)
         for _ in range(times_value):
             for command in self.block:
@@ -307,7 +307,7 @@ class WhileNode(Node):
         self.condition = condition
         self.block = block
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         while self.condition.evaluate(symbol_table,stack_of_commands):
             for command in self.block:
                 command.evaluate(symbol_table,stack_of_commands)
@@ -317,7 +317,7 @@ class IfNode(Node):
         self.condition = condition
         self.block = block
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         if self.condition.evaluate(symbol_table,stack_of_commands):
             for command in self.block:
                 command.evaluate(symbol_table,stack_of_commands)
@@ -332,21 +332,21 @@ class ReturnDockNode(Node):
             elif comando[0] == "tras":
                 print(f"Avançando {comando[1]} unidades")
             elif comando[0] == "esquerda":
-                print(f"Rotacionando {comando[1]} graus à esquerda")
-            else:
                 print(f"Rotacionando {comando[1]} graus à direita")
+            else:
+                print(f"Rotacionando {comando[1]} graus à esquerda")
         print("Retornando à base de carregamento")
 
 class CleanTrashNode(Node):
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         print("Limpando o lixo")
 
 class StopCleanNode(Node):
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         print("Parando a limpeza")
 
 class StartCleanNode(Node):
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         print("Iniciando a limpeza")
 
 class DeclarationNode(Node):
@@ -409,7 +409,7 @@ class IdentifierNode(Node):
     def __init__(self, name):
         self.name = name
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         value, var_type = symbol_table.getter(self.name)
         return value
 
@@ -448,7 +448,7 @@ class UnOpNode(Node):
         self.op_type = op_type
         self.operand = operand
 
-    def evaluate(self, symbol_table):
+    def evaluate(self, symbol_table, stack_of_commands):
         operand_val = self.operand.evaluate(symbol_table,stack_of_commands)
         if self.op_type == 'NOT':
             return int(not operand_val)
